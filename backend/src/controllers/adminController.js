@@ -1,0 +1,82 @@
+const bcrypt = require('bcrypt');
+const pool = require('../config/db');
+
+// Super Admin creates a new admin (role: 'admin')
+async function createAdmin(req, res) {
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ error: 'Name, email, and password are required' });
+  }
+
+  try {
+    const existing = await pool.query('SELECT id FROM admins WHERE email = $1', [email]);
+    if (existing.rows.length > 0) {
+      return res.status(409).json({ error: 'Email already in use' });
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+    const result = await pool.query(
+      `INSERT INTO admins (name, email, password_hash, role)
+       VALUES ($1, $2, $3, 'admin')
+       RETURNING id, name, email, role`,
+      [name, email, hash]
+    );
+
+    res.status(201).json({ admin: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+
+// Super Admin deletes an admin
+async function deleteAdmin(req, res) {
+  const { id } = req.params;
+
+  try {
+    const target = await pool.query('SELECT role FROM admins WHERE id = $1', [id]);
+    if (target.rows.length === 0) {
+      return res.status(404).json({ error: 'Admin not found' });
+    }
+    if (target.rows[0].role === 'super_admin') {
+      return res.status(403).json({ error: 'Cannot delete a super admin' });
+    }
+
+    await pool.query('DELETE FROM admins WHERE id = $1', [id]);
+    res.json({ message: 'Admin deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+
+// List all admins (super admin only)
+async function listAdmins(req, res) {
+  try {
+    const result = await pool.query(
+      'SELECT id, name, email, role, created_at FROM admins ORDER BY id'
+    );
+    res.json({ admins: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+
+// Minimal admin list (id, name, role) — any authenticated admin can call this,
+// used to populate the "collaborate with" picker when creating a batch
+async function listAdminsBasic(req, res) {
+  try {
+    const result = await pool.query(
+      'SELECT id, name, role FROM admins WHERE id != $1 ORDER BY name',
+      [req.admin.id]
+    );
+    res.json({ admins: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+
+module.exports = { createAdmin, deleteAdmin, listAdmins, listAdminsBasic };

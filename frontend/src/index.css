@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-paper text-ink font-sans antialiased;
+}
+
+/* the "perforated tear-off" signature — used on the danger zone and the QR ticket */
+.perforated {
+  border-top: 2px dashed #B8B9A8;
+  position: relative;
+}
+.perforated::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 0;
+  right: 0;
+  height: 14px;
+  background-image: radial-gradient(circle, #EFEEE6 4px, transparent 4.5px);
+  background-size: 20px 14px;
+  background-repeat: repeat-x;
+}
+
+:focus-visible {
+  outline: 2px solid #2F6F4F;
+  outline-offset: 2px;
+}

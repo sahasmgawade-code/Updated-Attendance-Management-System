@@ -1,0 +1,113 @@
+const pool = require('../config/db');
+
+// Create a batch (super_admin or admin), optionally with collaborating admins
+async function createBatch(req, res) {
+  const { name, collaboratorIds } = req.body;
+  if (!name) return res.status(400).json({ error: 'Batch name is required' });
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO batches (name, created_by) VALUES ($1, $2) RETURNING *`,
+      [name, req.admin.id]
+    );
+    const batch = result.rows[0];
+
+    // Auto-assign creator to the batch via batch_admins
+    await pool.query(
+      `INSERT INTO batch_admins (batch_id, admin_id) VALUES ($1, $2)`,
+      [batch.id, req.admin.id]
+    );
+
+    // assign any collaborating admins picked at creation time
+    if (Array.isArray(collaboratorIds) && collaboratorIds.length > 0) {
+      const uniqueIds = [...new Set(collaboratorIds)].filter(
+        (id) => Number.isInteger(id) && id !== req.admin.id
+      );
+      for (const adminId of uniqueIds) {
+        await pool.query(
+          `INSERT INTO batch_admins (batch_id, admin_id) VALUES ($1, $2)
+           ON CONFLICT (batch_id, admin_id) DO NOTHING`,
+          [batch.id, adminId]
+        );
+      }
+    }
+
+    res.status(201).json({ batch });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+
+// Delete a batch (super_admin only, or admin who owns it — adjust as needed)
+async function deleteBatch(req, res) {
+  const { id } = req.params;
+  try {
+    if (req.admin.role !== 'super_admin') {
+      const access = await pool.query(
+        'SELECT 1 FROM batch_admins WHERE batch_id = $1 AND admin_id = $2',
+        [id, req.admin.id]
+      );
+      if (access.rows.length === 0) return res.status(403).json({ error: 'No access to this batch' });
+    }
+
+    const result = await pool.query('DELETE FROM batches WHERE id = $1 RETURNING id', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Batch not found' });
+    }
+    res.json({ message: 'Batch deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+// List batches — super_admin sees all, admin sees only assigned ones
+async function listBatches(req, res) {
+  try {
+    let result;
+    if (req.admin.role === 'super_admin') {
+      result = await pool.query('SELECT * FROM batches ORDER BY id');
+    } else {
+      result = await pool.query(
+        `SELECT b.* FROM batches b
+         JOIN batch_admins ba ON ba.batch_id = b.id
+         WHERE ba.admin_id = $1
+         ORDER BY b.id`,
+        [req.admin.id]
+      );
+    }
+    res.json({ batches: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+
+// Super admin assigns/reassigns an admin to a batch
+async function assignAdminToBatch(req, res) {
+  const { id } = req.params; // batch id
+  const { adminId } = req.body;
+
+  if (!adminId) return res.status(400).json({ error: 'adminId is required' });
+
+  try {
+    const batch = await pool.query('SELECT id FROM batches WHERE id = $1', [id]);
+    if (batch.rows.length === 0) return res.status(404).json({ error: 'Batch not found' });
+
+    const admin = await pool.query('SELECT id FROM admins WHERE id = $1', [adminId]);
+    if (admin.rows.length === 0) return res.status(404).json({ error: 'Admin not found' });
+
+    await pool.query(
+      `INSERT INTO batch_admins (batch_id, admin_id) VALUES ($1, $2)
+       ON CONFLICT (batch_id, admin_id) DO NOTHING`,
+      [id, adminId]
+    );
+
+    res.json({ message: 'Admin assigned to batch' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+
+module.exports = { createBatch, deleteBatch, listBatches, assignAdminToBatch };
