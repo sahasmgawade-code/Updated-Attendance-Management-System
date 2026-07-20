@@ -138,4 +138,89 @@ async function getStudentReport(req, res) {
   }
 }
 
-module.exports = { getBatchReport, getStudentReport };
+// Batch attendance matrix: URN, Name, per-date present/absent, and overall %.
+// Used for the Excel export. Optional ?startDate=&endDate= restricts the range.
+async function getBatchAttendanceMatrix(req, res) {
+  const { batchId } = req.params;
+  const { startDate, endDate } = req.query;
+
+  try {
+    if (!(await canAccessBatch(req.admin, batchId))) {
+      return res.status(403).json({ error: 'No access to this batch' });
+    }
+
+    const params = [batchId];
+    let dateFilterPlain = '';
+    let dateFilterA = '';
+    if (startDate) {
+      params.push(startDate);
+      dateFilterPlain += ` AND date >= $${params.length}`;
+      dateFilterA += ` AND a.date >= $${params.length}`;
+    }
+    if (endDate) {
+      params.push(endDate);
+      dateFilterPlain += ` AND date <= $${params.length}`;
+      dateFilterA += ` AND a.date <= $${params.length}`;
+    }
+
+    // All distinct attendance dates in range, in order -> these become the columns
+    const datesRes = await pool.query(
+      `SELECT DISTINCT date FROM attendance WHERE batch_id = $1${dateFilterPlain} ORDER BY date`,
+      params
+    );
+    const dates = datesRes.rows.map((r) => r.date);
+
+    // Every student in the batch, left-joined with their attendance rows
+    const rowsRes = await pool.query(
+      `SELECT s.id AS student_id, s.urn, s.first_name, s.last_name, a.date, a.status
+       FROM students s
+       LEFT JOIN attendance a
+         ON a.student_id = s.id AND a.batch_id = $1${dateFilterA}
+       WHERE s.batch_id = $1
+       ORDER BY s.first_name, a.date`,
+      params
+    );
+
+    const studentMap = new Map();
+    for (const row of rowsRes.rows) {
+      if (!studentMap.has(row.student_id)) {
+        studentMap.set(row.student_id, {
+          studentId: row.student_id,
+          urn: row.urn,
+          firstName: row.first_name,
+          lastName: row.last_name,
+          statuses: {},
+          presentCount: 0,
+        });
+      }
+      if (row.date) {
+        const entry = studentMap.get(row.student_id);
+        entry.statuses[row.date] = row.status;
+        if (row.status === 'present') entry.presentCount += 1;
+      }
+    }
+
+    const totalWorkingDays = dates.length;
+    const students = Array.from(studentMap.values()).map((s) => ({
+      ...s,
+      totalWorkingDays,
+      percentage:
+        totalWorkingDays > 0
+          ? Math.round((s.presentCount / totalWorkingDays) * 10000) / 100
+          : 0,
+    }));
+
+    res.json({
+      batchId: parseInt(batchId, 10),
+      dates,
+      startDate: startDate || null,
+      endDate: endDate || null,
+      students,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+
+module.exports = { getBatchReport, getStudentReport, getBatchAttendanceMatrix };

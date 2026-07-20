@@ -81,6 +81,10 @@ export const api = {
     const qs = new URLSearchParams(params).toString();
     return request(`/reports/batch/${batchId}${qs ? `?${qs}` : ''}`);
   },
+  getBatchMatrix: (batchId, params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/reports/batch/${batchId}/matrix${qs ? `?${qs}` : ''}`);
+  },
   getStudentReport: (studentId) => request(`/reports/student/${studentId}`),
 };
 async function triggerFileDownload(response) {

@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { api } from '../api/client.js';
 import { useSelectedBatch } from '../hooks/useSelectedBatch.js';
 import AttendancePie from '../components/AttendancePie.jsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-
+import * as XLSX from 'xlsx';
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -125,6 +125,48 @@ function CollapsibleSection({ title, colorClass, count, children, defaultOpen })
   );
 }
 
+function DownloadDropdown({ label, onPdf, onExcel, disabled }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative inline-block" ref={ref}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        disabled={disabled}
+        className="bg-forest text-paper rounded px-5 py-2 font-medium hover:bg-forestDark transition-colors disabled:opacity-60 flex items-center gap-2"
+      >
+        {label}
+        <span className="text-xs">▾</span>
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-1 w-48 bg-card border border-rule rounded shadow-lg z-10 overflow-hidden">
+          <button
+            onClick={() => { setOpen(false); onPdf(); }}
+            className="w-full text-left px-4 py-2 text-sm hover:bg-ink/5 transition-colors"
+          >
+            Download as PDF
+          </button>
+          <button
+            onClick={() => { setOpen(false); onExcel(); }}
+            className="w-full text-left px-4 py-2 text-sm hover:bg-ink/5 transition-colors"
+          >
+            Download as Excel
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Reports() {
   const [batches, setBatches] = useState([]);
   const [batchId, setBatchId] = useSelectedBatch();
@@ -141,7 +183,7 @@ export default function Reports() {
   const [rangeEnd, setRangeEnd] = useState('');
   const [rangeDownloading, setRangeDownloading] = useState(false);
   const [rangeError, setRangeError] = useState('');
-
+  const [searchQuery, setSearchQuery] = useState('');
   useEffect(() => {
     api.listBatches()
       .then((data) => {
@@ -265,8 +307,78 @@ export default function Reports() {
     }
   }
 
+function buildExcelWorkbook(matrixData) {
+    const { dates, students } = matrixData;
+    const header = ['URN', 'Name', ...dates, 'Attendance (%)'];
+    const rows = students.map((s) => {
+      const dateCells = dates.map((d) => {
+        const status = s.statuses[d];
+        if (status === 'present') return 'P';
+        if (status === 'absent') return 'A';
+        return '-';
+      });
+      return [s.urn, `${s.firstName} ${s.lastName}`, ...dateCells, s.percentage];
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet([header, ...rows]);
+    worksheet['!cols'] = [
+      { wch: 12 },
+      { wch: 22 },
+      ...dates.map(() => ({ wch: 11 })),
+      { wch: 14 },
+    ];
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance');
+    return workbook;
+  }
+
+  async function downloadBatchExcel() {
+    if (!report) return;
+    const batchName = batches.find((b) => b.id === batchId)?.name || 'Batch';
+    try {
+      const matrixData = await api.getBatchMatrix(batchId);
+      const workbook = buildExcelWorkbook(matrixData);
+      XLSX.writeFile(workbook, `${batchName}-attendance-report-full.xlsx`);
+    } catch (err) {
+      setError(err.message || 'Could not generate Excel report.');
+    }
+  }
+
+  async function downloadRangeExcel() {
+    if (!rangeStart || !rangeEnd) {
+      setRangeError('Pick both a start and end date.');
+      return;
+    }
+    if (rangeStart > rangeEnd) {
+      setRangeError('Start date must be before end date.');
+      return;
+    }
+    setRangeError('');
+    setRangeDownloading(true);
+    try {
+      const batchName = batches.find((b) => b.id === batchId)?.name || 'Batch';
+      const matrixData = await api.getBatchMatrix(batchId, { startDate: rangeStart, endDate: rangeEnd });
+      const workbook = buildExcelWorkbook(matrixData);
+      XLSX.writeFile(workbook, `${batchName}-attendance-report-${rangeStart}-to-${rangeEnd}.xlsx`);
+    } catch (err) {
+      setRangeError(err.message || 'Could not generate report.');
+    } finally {
+      setRangeDownloading(false);
+    }
+  }
+
   const absentToday = today?.students.filter((s) => s.status === 'absent') ?? [];
   const overallStats = report ? [...report.goodStanding, ...report.defaulters] : [];
+
+  function matchesSearch(s) {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.trim().toLowerCase();
+    const fullName = `${s.firstName} ${s.lastName}`.toLowerCase();
+    return fullName.includes(q) || s.urn.toLowerCase().includes(q);
+  }
+
+  const filteredDefaulters = report ? report.defaulters.filter(matchesSearch) : [];
+  const filteredGoodStanding = report ? report.goodStanding.filter(matchesSearch) : [];
   const overallAvg =
     overallStats.length > 0
       ? Math.round((overallStats.reduce((sum, s) => sum + s.percentage, 0) / overallStats.length) * 10) / 10
@@ -295,13 +407,12 @@ export default function Reports() {
               <option key={b.id} value={b.id}>{b.name}</option>
             ))}
           </select>
-          <button
-            onClick={downloadBatchPdf}
+          <DownloadDropdown
+            label="Download Whole Batch"
+            onPdf={downloadBatchPdf}
+            onExcel={downloadBatchExcel}
             disabled={!report}
-            className="bg-forest text-paper rounded px-5 py-2 font-medium hover:bg-forestDark transition-colors disabled:opacity-60"
-          >
-            Download Whole Batch PDF
-          </button>
+          />
         </div>
       </div>
 
@@ -346,6 +457,15 @@ export default function Reports() {
 
           <div className="bg-card border border-rule rounded-lg p-5 space-y-3">
             <p className="text-xs font-mono uppercase tracking-wide text-ink/50">Download Custom Date Range</p>
+            <div className="bg-card border border-rule rounded-lg p-4">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by name or URN…"
+              className="w-full border border-rule rounded px-3 py-2 bg-paper font-medium focus:outline-none focus:ring-1 focus:ring-forest"
+            />
+          </div>
             <div className="flex items-center gap-3 flex-wrap">
               <input
                 type="date"
@@ -362,13 +482,12 @@ export default function Reports() {
                 onChange={(e) => setRangeEnd(e.target.value)}
                 className="border border-rule rounded px-3 py-2 bg-paper font-medium"
               />
-              <button
-                onClick={downloadRangePdf}
+              <DownloadDropdown
+                label={rangeDownloading ? 'Generating…' : 'Download Range'}
+                onPdf={downloadRangePdf}
+                onExcel={downloadRangeExcel}
                 disabled={rangeDownloading}
-                className="px-4 py-2 text-sm font-medium rounded border border-forest text-forestDark hover:bg-forest hover:text-paper transition-colors disabled:opacity-60"
-              >
-                {rangeDownloading ? 'Generating…' : 'Download Range PDF'}
-              </button>
+              />
             </div>
             {rangeError && <p className="text-sm text-brick font-medium">{rangeError}</p>}
           </div>
@@ -376,16 +495,16 @@ export default function Reports() {
           <CollapsibleSection
             title="Defaulters (below 75%)"
             colorClass="text-brick"
-            count={report.defaulters.length}
+            count={filteredDefaulters.length}
             defaultOpen={true}
           >
-            {report.defaulters.length === 0 ? (
+            {filteredDefaulters.length === 0 ? (
               <div className="bg-card border border-rule rounded-lg p-6 text-center text-sm text-ink/50">
-                No defaulters — everyone is above 75%.
+                {searchQuery ? 'No matching students.' : 'No defaulters — everyone is above 75%.'}
               </div>
             ) : (
               <div className="bg-card border border-rule rounded-lg divide-y divide-rule overflow-hidden">
-                {report.defaulters.map((s) => (
+                {filteredDefaulters.map((s) => (
                   <StudentRow
                     key={s.studentId}
                     s={s}
@@ -403,16 +522,16 @@ export default function Reports() {
           <CollapsibleSection
             title="Good Standing (75% and above)"
             colorClass="text-forest"
-            count={report.goodStanding.length}
+            count={filteredGoodStanding.length}
             defaultOpen={false}
           >
-            {report.goodStanding.length === 0 ? (
+            {filteredGoodStanding.length === 0 ? (
               <div className="bg-card border border-rule rounded-lg p-6 text-center text-sm text-ink/50">
-                No students in good standing yet.
+                {searchQuery ? 'No matching students.' : 'No students in good standing yet.'}
               </div>
             ) : (
               <div className="bg-card border border-rule rounded-lg divide-y divide-rule overflow-hidden">
-                {report.goodStanding.map((s) => (
+                {filteredGoodStanding.map((s) => (
                   <StudentRow
                     key={s.studentId}
                     s={s}
