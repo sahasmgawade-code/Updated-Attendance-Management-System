@@ -55,15 +55,14 @@ async function getSessionStatus(req, res) {
   }
 }
 
-// Public: student submits urn + name from the scanned page
+// Public: student submits urn from the scanned page
 async function submitAttendance(req, res) {
   const { token } = req.params;
   const { urn, firstName, lastName, deviceToken } = req.body;
 
   if (!urn || !firstName || !lastName || !deviceToken) {
-    return res.status(400).json({ error: 'urn, firstName, lastName, and deviceToken are required' });
+    return res.status(400).json({ error: 'urn, firstName, lastName and deviceToken are required' });
   }
-
   try {
     const sessionRes = await pool.query('SELECT * FROM qr_sessions WHERE session_token = $1', [token]);
     if (sessionRes.rows.length === 0) return res.status(404).json({ error: 'Invalid QR session' });
@@ -82,16 +81,14 @@ async function submitAttendance(req, res) {
       return res.status(409).json({ error: 'This device has already submitted attendance for this session' });
     }
 
-    // match student by urn + name, within the correct batch
+    // match student by urn, within the correct batch
     const studentRes = await pool.query(
-      `SELECT * FROM students
-       WHERE urn = $1 AND batch_id = $2
-         AND LOWER(first_name) = LOWER($3) AND LOWER(last_name) = LOWER($4)`,
-      [urn, session.batch_id, firstName, lastName]
+      `SELECT * FROM students WHERE urn = $1 AND batch_id = $2`,
+      [urn, session.batch_id]
     );
 
     if (studentRes.rows.length === 0) {
-      return res.status(404).json({ error: 'No matching student found in this batch' });
+      return res.status(404).json({ error: 'No student with this URN found in this batch' });
     }
 
     const student = studentRes.rows[0];
@@ -101,11 +98,11 @@ async function submitAttendance(req, res) {
 
     // record the submission (for dedup / audit trail)
     await pool.query(
-      `INSERT INTO qr_submissions (qr_session_id, student_id, device_token)
-       VALUES ($1, $2, $3)`,
-      [session.id, student.id, deviceToken]
+      `INSERT INTO qr_submissions (qr_session_id, student_id, device_token, submitted_first_name, submitted_last_name)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [session.id, student.id, deviceToken, firstName.trim(), lastName.trim()]
     );
-// upsert attendance for today (in IST, not server UTC)
+    // upsert attendance for today (in IST, not server UTC)
     const nowIst = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
     const today = nowIst.toISOString().slice(0, 10);
     await pool.query(
@@ -122,7 +119,6 @@ async function submitAttendance(req, res) {
     res.status(500).json({ error: 'Server error' });
   }
 }
-
 // Admin: get the response sheet for a session (list of who submitted)
 async function getSessionReport(req, res) {
   const { sessionId } = req.params;
@@ -140,7 +136,7 @@ async function getSessionReport(req, res) {
     }
 
     const result = await pool.query(
-      `SELECT s.urn, s.first_name, s.last_name, qs.submitted_at
+      `SELECT s.urn, qs.submitted_first_name AS first_name, qs.submitted_last_name AS last_name, qs.submitted_at
        FROM qr_submissions qs
        JOIN students s ON s.id = qs.student_id
        WHERE qs.qr_session_id = $1
@@ -171,13 +167,13 @@ async function downloadSessionReport(req, res) {
     }
 
     const submissionsRes = await pool.query(
-      `SELECT s.urn, s.first_name, s.last_name, qs.submitted_at
-       FROM qr_submissions qs
-       JOIN students s ON s.id = qs.student_id
-       WHERE qs.qr_session_id = $1
-       ORDER BY qs.submitted_at`,
-      [sessionId]
-    );
+  `SELECT s.urn, qs.submitted_first_name AS first_name, qs.submitted_last_name AS last_name, qs.submitted_at
+   FROM qr_submissions qs
+   JOIN students s ON s.id = qs.student_id
+   WHERE qs.qr_session_id = $1
+   ORDER BY qs.submitted_at`,
+  [sessionId]
+);
 
     // build CSV, escaping any field that contains a comma, quote, or newline
     const escapeCsv = (val) => {

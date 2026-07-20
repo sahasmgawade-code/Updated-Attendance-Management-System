@@ -65,9 +65,10 @@ CREATE TABLE qr_submissions (
   qr_session_id INTEGER REFERENCES qr_sessions(id) ON DELETE CASCADE,
   student_id INTEGER REFERENCES students(id) ON DELETE SET NULL,
   device_token VARCHAR(255) NOT NULL,
+  submitted_first_name VARCHAR(100),
+  submitted_last_name VARCHAR(100),
   submitted_at TIMESTAMP DEFAULT NOW()
 );
-
 CREATE INDEX idx_attendance_batch_date ON attendance(batch_id, date);
 CREATE INDEX idx_students_batch ON students(batch_id);
 CREATE INDEX idx_qr_submissions_device ON qr_submissions(device_token, submitted_at);

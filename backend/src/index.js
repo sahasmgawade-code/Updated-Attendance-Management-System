@@ -8,7 +8,20 @@ const studentRoutes = require('./routes/studentRoutes');
 const qrRoutes = require('./routes/qrRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');const reportRoutes = require('./routes/reportRoutes');
 const app = express();
-app.use(cors());
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:3000', // keep local dev working
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+}));
 app.use(express.json());
 
 app.get('/api/health', (req, res) => {

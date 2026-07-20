@@ -32,7 +32,6 @@ export default function ScanAttendance() {
   const [status, setStatus] = useState('loading'); // loading | open | expired | error
   const [expiresAt, setExpiresAt] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
-
   const [urn, setUrn] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
