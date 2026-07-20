@@ -152,7 +152,7 @@ export default function AddBatch() {
           )}
         </div>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/dashboard')}
           className="bg-forest text-paper rounded px-6 py-2.5 font-medium hover:bg-forestDark transition-colors"
         >
           Go to Dashboard
@@ -274,7 +274,7 @@ export default function AddBatch() {
           {creating ? 'Creating…' : 'Create Batch'}
         </button>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/dashboard')}
           className="px-6 py-2.5 font-medium rounded border border-rule text-ink/70 hover:bg-ink/5 transition-colors"
         >
           Cancel

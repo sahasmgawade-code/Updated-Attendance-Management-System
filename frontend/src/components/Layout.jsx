@@ -16,12 +16,12 @@ export default function Layout({ children }) {
       <header className="border-b border-rule bg-card">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <button onClick={() => navigate('/')} className="flex items-baseline gap-2">
+            <button onClick={() => navigate('/dashboard')} className="flex items-baseline gap-2">
               <span className="font-display text-2xl font-600 text-forestDark">Attend</span>
               <span className="font-mono text-xs tracking-widest text-brick uppercase">QR</span>
             </button>
             <nav className="hidden md:flex items-center gap-1">
-              <NavLink to="/" end className={navLinkClass}>Dashboard</NavLink>
+              <NavLink to="/dashboard" end className={navLinkClass}>Dashboard</NavLink>
               <NavLink to="/generate-qr" className={navLinkClass}>Generate QR</NavLink>
               <NavLink to="/edit-attendance" className={navLinkClass}>Edit Attendance</NavLink>
               <NavLink to="/reports" className={navLinkClass}>Reports</NavLink>

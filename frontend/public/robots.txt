@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /students
+Disallow: /generate-qr
+Disallow: /edit-attendance
+Disallow: /reports
+Disallow: /batches/
+Disallow: /scan/
+
+Sitemap: https://attendqr-frontend.onrender.com/sitemap.xml
