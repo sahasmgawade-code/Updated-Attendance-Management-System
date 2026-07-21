@@ -141,7 +141,7 @@ export default function GenerateQr() {
           <button
             onClick={handleGenerate}
             disabled={generating || !batchId}
-            className="bg-forest text-paper rounded px-6 py-2.5 font-medium hover:bg-forestDark transition-colors disabled:opacity-60"
+            className="glass-btn bg-forestGlass text-white rounded px-6 py-2.5 font-medium hover:bg-forestGlass/70 transition-colors disabled:opacity-60"
           >
             {generating ? 'Generating…' : 'Generate QR'}
           </button>
@@ -175,7 +175,7 @@ export default function GenerateQr() {
                 </p>
                 <button
                   onClick={handleGenerate}
-                  className="mt-4 bg-forest text-paper rounded px-6 py-2.5 font-medium hover:bg-forestDark transition-colors"
+                  className="mt-4 glass-btn bg-forestGlass text-white rounded px-6 py-2.5 font-medium hover:bg-forestGlass/70 transition-colors"
                 >
                   Generate New QR
                 </button>

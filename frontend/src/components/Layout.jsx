@@ -1,10 +1,10 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-
+import Logo from './Logo.jsx';
 const navLinkClass = ({ isActive }) =>
-  `px-3 py-1.5 text-sm font-medium rounded transition-colors ${
-    isActive ? 'bg-forest text-paper' : 'text-ink/80 hover:bg-ink/5'
+  `px-3 py-1.5 text-sm font-medium rounded transition-colors whitespace-nowrap ${
+    isActive ? 'glass-btn bg-forestGlass text-white' : 'text-ink/80 hover:bg-white/20'
   }`;
 
 export default function Layout({ children }) {
@@ -16,9 +16,8 @@ export default function Layout({ children }) {
       <header className="border-b border-rule bg-card">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <button onClick={() => navigate('/dashboard')} className="flex items-baseline gap-2">
-              <span className="font-display text-2xl font-600 text-forestDark">Attend</span>
-              <span className="font-mono text-xs tracking-widest text-brick uppercase">QR</span>
+            <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2">
+              <Logo iconSize={32} textSize="text-base" showSubtitle={false} />
             </button>
             <nav className="hidden md:flex items-center gap-1">
               <NavLink to="/dashboard" end className={navLinkClass}>Dashboard</NavLink>

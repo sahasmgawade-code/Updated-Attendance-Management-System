@@ -153,7 +153,7 @@ export default function AddBatch() {
         </div>
         <button
           onClick={() => navigate('/dashboard')}
-          className="bg-forest text-paper rounded px-6 py-2.5 font-medium hover:bg-forestDark transition-colors"
+          className="glass-btn bg-forestGlass text-white rounded px-6 py-2.5 font-medium hover:bg-forestGlass/70 transition-colors"
         >
           Go to Dashboard
         </button>
@@ -194,8 +194,8 @@ export default function AddBatch() {
                   key={a.id}
                   className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded border cursor-pointer transition-colors ${
                     selectedCollaboratorIds.includes(a.id)
-                      ? 'border-forest bg-forest text-paper'
-                      : 'border-rule text-ink/70 hover:bg-ink/5'
+                      ? 'glass-btn border-forest bg-forestGlass text-white'
+                      : 'border-rule text-ink/70 hover:bg-white/20'
                   }`}
                 >
                   <input
@@ -269,7 +269,7 @@ export default function AddBatch() {
         <button
           onClick={handleCreate}
           disabled={creating}
-          className="bg-forest text-paper rounded px-6 py-2.5 font-medium hover:bg-forestDark transition-colors disabled:opacity-60"
+          className="glass-btn bg-forestGlass text-white rounded px-6 py-2.5 font-medium hover:bg-forestGlass/70 transition-colors disabled:opacity-60"
         >
           {creating ? 'Creating…' : 'Create Batch'}
         </button>

@@ -179,7 +179,7 @@ export default function ScanAttendance() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full bg-forest text-paper rounded py-2.5 font-medium hover:bg-forestDark transition-colors disabled:opacity-60"
+                  className="w-full glass-btn bg-forestGlass text-white rounded py-2.5 font-medium hover:bg-forestGlass/70 transition-colors disabled:opacity-60"
                 >
                   {submitting ? 'Marking…' : 'Mark Present'}
                 </button>

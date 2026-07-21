@@ -97,6 +97,7 @@ export default function Dashboard() {
   const presentCount = today?.students.filter((s) => s.status === 'present').length ?? 0;
   const absentStudents = today?.students.filter((s) => s.status === 'absent') ?? [];
   const totalStudents = today?.students.length ?? 0;
+  const attendanceMarkedToday = today?.students.some((s) => s.method) ?? false;
   const overallStats = report ? [...report.goodStanding, ...report.defaulters] : [];
   const overallAvg =
     overallStats.length > 0
@@ -121,7 +122,7 @@ export default function Dashboard() {
           )}
           <button
             onClick={() => navigate('/batches/new')}
-            className="px-3 py-2 text-sm font-medium rounded bg-forest text-paper hover:bg-forestDark transition-colors"
+            className="px-3 py-2 text-sm font-medium rounded glass-btn bg-forestGlass text-white hover:bg-forestGlass/70 transition-colors"
           >
             + Add Batch
           </button>
@@ -141,6 +142,20 @@ export default function Dashboard() {
         <p className="text-ink/50 font-mono text-sm">Loading…</p>
       ) : (
         <>
+          {today && totalStudents > 0 && !attendanceMarkedToday && (
+            <div className="bg-brick/10 border border-brick rounded-lg p-5 flex items-center justify-between flex-wrap gap-3">
+              <p className="font-display text-lg font-600 text-brick">
+                Attendance Not Marked for Today
+              </p>
+              <button
+                onClick={() => navigate('/generate-qr')}
+                className="px-4 py-2 text-sm font-medium rounded glass-btn bg-brickGlass text-white hover:bg-brickGlass/90 transition-colors"
+              >
+                Mark Attendance →
+              </button>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-card border border-rule rounded-lg p-5">
               <p className="text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Present Today</p>
@@ -160,28 +175,30 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-card border border-rule rounded-lg p-5">
-            <p className="text-xs font-mono uppercase tracking-wide text-ink/50 mb-3">Absent Students</p>
-            {absentStudents.length === 0 ? (
-              <p className="text-sm text-ink/50">Nobody absent today — full house.</p>
-            ) : (
-              <ul className="divide-y divide-rule">
-                {absentStudents.map((s) => (
-                  <li key={s.student_id} className="py-2 flex items-center justify-between">
-                    <span className="font-medium">{s.first_name} {s.last_name}</span>
-                    <span className="font-mono text-xs text-ink/50">{s.urn}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          {attendanceMarkedToday && (
+            <div className="bg-card border border-rule rounded-lg p-5">
+              <p className="text-xs font-mono uppercase tracking-wide text-ink/50 mb-3">Absent Students</p>
+              {absentStudents.length === 0 ? (
+                <p className="text-sm text-ink/50">Nobody absent today — full house.</p>
+              ) : (
+                <ul className="divide-y divide-rule">
+                  {absentStudents.map((s) => (
+                    <li key={s.student_id} className="py-2 flex items-center justify-between">
+                      <span className="font-medium">{s.first_name} {s.last_name}</span>
+                      <span className="font-mono text-xs text-ink/50">{s.urn}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
 
           <div className="perforated pt-6 mt-10">
             <p className="text-xs font-mono uppercase tracking-wide text-brick mb-3">Danger Zone</p>
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={handleDeleteBatch}
-                className="px-4 py-2 text-sm font-medium rounded border border-brick text-brick hover:bg-brick hover:text-paper transition-colors"
+                className="glass-btn px-4 py-2 text-sm font-medium rounded border border-brick text-brick hover:bg-brickGlass hover:text-white transition-colors"
               >
                 Delete Batch
               </button>
@@ -248,7 +265,7 @@ export default function Dashboard() {
                 <button
                   type="submit"
                   disabled={pwSaving}
-                  className="bg-forest text-paper rounded px-5 py-2 font-medium hover:bg-forestDark transition-colors disabled:opacity-60"
+                  className="glass-btn bg-forestGlass text-white rounded px-5 py-2 font-medium hover:bg-forestGlass/70 transition-colors disabled:opacity-60"
                 >
                   {pwSaving ? 'Saving…' : 'Update Password'}
                 </button>

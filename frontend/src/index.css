@@ -3,9 +3,68 @@
 @tailwind utilities;
 
 body {
-  @apply bg-paper text-ink font-sans antialiased;
+  @apply text-ink font-sans antialiased;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #8FD3E8 0%, #4A9CB8 40%, #1F5C73 100%);
+  background-attachment: fixed;
+  position: relative;
+  overflow-x: hidden;
 }
 
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+}
+body::before {
+  width: 480px;
+  height: 480px;
+  top: -120px;
+  right: -100px;
+  background: rgba(255, 255, 255, 0.25);
+}
+body::after {
+  width: 380px;
+  height: 380px;
+  bottom: -100px;
+  left: -80px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+h1, h2, h3 {
+  text-shadow: 0 1px 4px rgba(255, 255, 255, 0.35);
+}
+
+.bg-card,
+.bg-paper {
+  backdrop-filter: blur(8px) saturate(180%);
+  -webkit-backdrop-filter: blur(8px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 8px 24px rgba(16, 45, 60, 0.15);
+}
+
+select.bg-card,
+input.bg-paper {
+  box-shadow: inset 0 1px 3px rgba(16, 45, 60, 0.08);
+}
+
+.glass-btn {
+  backdrop-filter: blur(6px) saturate(160%);
+  -webkit-backdrop-filter: blur(6px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 2px 10px rgba(16, 45, 60, 0.18);
+}
+.glass-btn:hover {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65), 0 4px 16px rgba(16, 45, 60, 0.24);
+}
 /* the "perforated tear-off" signature — used on the danger zone and the QR ticket */
 .perforated {
   border-top: 2px dashed #B8B9A8;

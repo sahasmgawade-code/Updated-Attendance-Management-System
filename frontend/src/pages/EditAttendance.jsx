@@ -172,13 +172,13 @@ export default function EditAttendance() {
             <div className="flex gap-2">
               <button
                 onClick={() => markAll('present')}
-                className="px-3 py-1.5 text-sm font-medium rounded border border-forest text-forest hover:bg-forest hover:text-paper transition-colors"
+                className="glass-btn px-3 py-1.5 text-sm font-medium rounded border border-forest text-forest hover:bg-forestGlass hover:text-white transition-colors"
               >
                 Mark All Present
               </button>
               <button
                 onClick={() => markAll('absent')}
-                className="px-3 py-1.5 text-sm font-medium rounded border border-brick text-brick hover:bg-brick hover:text-paper transition-colors"
+                className="glass-btn px-3 py-1.5 text-sm font-medium rounded border border-brick text-brick hover:bg-brickGlass hover:text-white transition-colors"
               >
                 Mark All Absent
               </button>
@@ -211,7 +211,7 @@ export default function EditAttendance() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="bg-forest text-paper rounded px-6 py-2.5 font-medium hover:bg-forestDark transition-colors disabled:opacity-60"
+              className="glass-btn bg-forestGlass text-white rounded px-6 py-2.5 font-medium hover:bg-forestGlass/70 transition-colors disabled:opacity-60"
             >
               {saving ? 'Saving…' : 'Save Attendance'}
             </button>

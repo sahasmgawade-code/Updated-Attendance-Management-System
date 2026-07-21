@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-
+import Logo from '../components/Logo.jsx';
 const features = [
   {
     title: 'Generate QR codes per batch',
@@ -47,13 +47,10 @@ export default function Landing() {
       {/* Header */}
       <header className="border-b border-rule bg-card">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-baseline gap-2">
-            <span className="font-display text-2xl font-600 text-forestDark">Attend</span>
-            <span className="font-mono text-xs tracking-widest text-brick uppercase">QR</span>
-          </div>
+          <Logo iconSize={32} textSize="text-base" showSubtitle={false} />
           <Link
             to="/login"
-            className="px-4 py-1.5 text-sm font-medium rounded border border-forest text-forestDark hover:bg-forest hover:text-paper transition-colors"
+            className="glass-btn px-4 py-1.5 text-sm font-medium rounded border border-forest text-forestDark hover:bg-forestGlass hover:text-white transition-colors"
           >
             Admin Login
           </Link>
@@ -69,7 +66,7 @@ export default function Landing() {
           QR code attendance,<br className="hidden sm:block" /> without the paper register
         </h1>
         <p className="text-lg text-ink/70 max-w-2xl mx-auto mb-10">
-          AttendQR replaces manual roll calls with a simple scan. Generate a QR
+          Present Hoon Sir! (PHS-AMS) replaces manual roll calls with a simple scan. Generate a QR
           code for any class or lecture, let students scan it with their
           phone, and get attendance reports instantly — built specifically
           for higher-education institutions.
@@ -77,7 +74,7 @@ export default function Landing() {
         <div className="flex items-center justify-center gap-4">
           <Link
             to="/login"
-            className="px-6 py-3 bg-forest text-paper rounded font-medium hover:bg-forestDark transition-colors"
+            className="px-6 py-3 glass-btn bg-forestGlass text-white rounded font-medium hover:bg-forestGlass/70 transition-colors"
           >
             Get Started
           </Link>
@@ -137,7 +134,7 @@ export default function Landing() {
         </p>
         <Link
           to="/login"
-          className="inline-block px-6 py-3 bg-forest text-paper rounded font-medium hover:bg-forestDark transition-colors"
+          className="inline-block px-6 py-3 glass-btn bg-forestGlass text-white rounded font-medium hover:bg-forestGlass/70 transition-colors"
         >
           Admin Login
         </Link>
@@ -147,7 +144,7 @@ export default function Landing() {
       <footer className="border-t border-rule bg-card">
         <div className="max-w-6xl mx-auto px-6 py-8 text-center">
           <p className="font-mono text-xs text-ink/50">
-            AttendQR — QR code attendance management for colleges &amp; universities
+            Present Hoon Sir! (PHS-AMS) — QR code attendance management for colleges &amp; universities
           </p>
         </div>
       </footer>

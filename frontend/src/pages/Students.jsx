@@ -59,7 +59,7 @@ function StudentForm({ initial, onCancel, onSubmit, submitLabel, error, lockUrn 
         <button
           type="submit"
           disabled={saving}
-          className="bg-forest text-paper rounded px-5 py-2 font-medium hover:bg-forestDark transition-colors disabled:opacity-60"
+          className="glass-btn bg-forestGlass text-white rounded px-5 py-2 font-medium hover:bg-forestGlass/70 transition-colors disabled:opacity-60"
         >
           {saving ? 'Saving…' : submitLabel}
         </button>
@@ -224,7 +224,7 @@ export default function Students() {
             setAddError('');
             setEditingId(null);
           }}
-          className="bg-forest text-paper rounded px-5 py-2 font-medium hover:bg-forestDark transition-colors"
+          className="glass-btn bg-forestGlass text-white rounded px-5 py-2 font-medium hover:bg-forestGlass/70 transition-colors"
         >
           {showAddForm ? 'Close' : '+ Add Student'}
         </button>
@@ -303,14 +303,14 @@ export default function Students() {
                       <button
                         onClick={() => handleBlacklistToggle(s.id, s.is_blacklisted)}
                         disabled={busyId === s.id}
-                        className="px-3 py-1.5 text-sm font-medium rounded border border-amber text-amber hover:bg-amber hover:text-paper transition-colors disabled:opacity-60"
+                        className="glass-btn px-3 py-1.5 text-sm font-medium rounded border border-amber text-amber hover:bg-amberGlass hover:text-white transition-colors disabled:opacity-60"
                       >
                         {s.is_blacklisted ? 'Unblacklist' : 'Blacklist'}
                       </button>
                     <button
                       onClick={() => handleDelete(s.id, `${s.first_name} ${s.last_name}`)}
                       disabled={busyId === s.id}
-                      className="px-3 py-1.5 text-sm font-medium rounded border border-brick text-brick hover:bg-brick hover:text-paper transition-colors disabled:opacity-60"
+                      className="glass-btn px-3 py-1.5 text-sm font-medium rounded border border-brick text-brick hover:bg-brickGlass hover:text-white transition-colors disabled:opacity-60"
                     >
                       Delete
                     </button>

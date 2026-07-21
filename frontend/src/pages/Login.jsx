@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-
+import Logo from '../components/Logo.jsx';
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -28,11 +28,9 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-paper px-6">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="flex items-baseline justify-center gap-2 mb-1">
-            <span className="font-display text-4xl font-600 text-forestDark">Attend</span>
-            <span className="font-mono text-sm tracking-widest text-brick uppercase">QR</span>
+          <div className="flex justify-center mb-2">
+            <Logo iconSize={56} textSize="text-3xl" />
           </div>
-          <p className="text-sm text-ink/50 font-mono">sign the register</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-card border border-rule rounded-lg p-8 space-y-5">
@@ -72,7 +70,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-forest text-paper rounded py-2.5 font-medium hover:bg-forestDark transition-colors disabled:opacity-60"
+            className="w-full glass-btn bg-forestGlass text-white rounded py-2.5 font-medium hover:bg-forestGlass/70 transition-colors disabled:opacity-60"
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>

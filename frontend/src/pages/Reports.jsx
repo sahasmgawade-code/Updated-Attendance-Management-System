@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useSelectedBatch } from '../hooks/useSelectedBatch.js';
 import AttendancePie from '../components/AttendancePie.jsx';
@@ -77,7 +78,7 @@ function StudentRow({ s, batchName, expandedId, onToggle, detail, loadingDetail 
                 </div>
                 <button
                   onClick={downloadStudentPdf}
-                  className="px-3 py-1.5 text-sm font-medium rounded bg-forest text-paper hover:bg-forestDark transition-colors"
+                  className="px-3 py-1.5 text-sm font-medium rounded glass-btn bg-forestGlass text-white hover:bg-forestGlass/70 transition-colors"
                 >
                   Download PDF
                 </button>
@@ -142,7 +143,7 @@ function DownloadDropdown({ label, onPdf, onExcel, disabled }) {
       <button
         onClick={() => setOpen((v) => !v)}
         disabled={disabled}
-        className="bg-forest text-paper rounded px-5 py-2 font-medium hover:bg-forestDark transition-colors disabled:opacity-60 flex items-center gap-2"
+        className="glass-btn bg-forestGlass text-white rounded px-5 py-2 font-medium hover:bg-forestGlass/70 transition-colors disabled:opacity-60 flex items-center gap-2"
       >
         {label}
         <span className="text-xs">▾</span>
@@ -168,6 +169,7 @@ function DownloadDropdown({ label, onPdf, onExcel, disabled }) {
 }
 
 export default function Reports() {
+  const navigate = useNavigate();
   const [batches, setBatches] = useState([]);
   const [batchId, setBatchId] = useSelectedBatch();
   const [report, setReport] = useState(null);
@@ -368,6 +370,7 @@ function buildExcelWorkbook(matrixData) {
   }
 
   const absentToday = today?.students.filter((s) => s.status === 'absent') ?? [];
+  const attendanceMarkedToday = today?.students.some((s) => s.method) ?? false;
   const overallStats = report ? [...report.goodStanding, ...report.defaulters] : [];
 
   function matchesSearch(s) {
@@ -422,6 +425,20 @@ function buildExcelWorkbook(matrixData) {
         <p className="text-ink/50 font-mono text-sm">Loading…</p>
       ) : report ? (
         <>
+          {today && today.students.length > 0 && !attendanceMarkedToday && (
+            <div className="bg-brick/10 border border-brick rounded-lg p-5 flex items-center justify-between flex-wrap gap-3">
+              <p className="font-display text-lg font-600 text-brick">
+                Attendance Not Marked for Today
+              </p>
+              <button
+                onClick={() => navigate('/generate-qr')}
+                className="px-4 py-2 text-sm font-medium rounded glass-btn bg-brickGlass text-white hover:bg-brickGlass/90 transition-colors"
+              >
+                Mark Attendance →
+              </button>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-card border border-rule rounded-lg p-5">
               <p className="text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Overall Attendance</p>
@@ -439,21 +456,23 @@ function buildExcelWorkbook(matrixData) {
             </div>
           </div>
 
-          <div className="bg-card border border-rule rounded-lg p-5">
-            <p className="text-xs font-mono uppercase tracking-wide text-ink/50 mb-3">Absent Students Today</p>
-            {absentToday.length === 0 ? (
-              <p className="text-sm text-ink/50">Nobody absent today — full house.</p>
-            ) : (
-              <ul className="divide-y divide-rule">
-                {absentToday.map((s) => (
-                  <li key={s.student_id} className="py-2 flex items-center justify-between">
-                    <span className="font-medium">{s.first_name} {s.last_name}</span>
-                    <span className="font-mono text-xs text-ink/50">{s.urn}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          {attendanceMarkedToday && (
+            <div className="bg-card border border-rule rounded-lg p-5">
+              <p className="text-xs font-mono uppercase tracking-wide text-ink/50 mb-3">Absent Students Today</p>
+              {absentToday.length === 0 ? (
+                <p className="text-sm text-ink/50">Nobody absent today — full house.</p>
+              ) : (
+                <ul className="divide-y divide-rule">
+                  {absentToday.map((s) => (
+                    <li key={s.student_id} className="py-2 flex items-center justify-between">
+                      <span className="font-medium">{s.first_name} {s.last_name}</span>
+                      <span className="font-mono text-xs text-ink/50">{s.urn}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
 
           <div className="bg-card border border-rule rounded-lg p-5 space-y-3">
             <p className="text-xs font-mono uppercase tracking-wide text-ink/50">Download Custom Date Range</p>

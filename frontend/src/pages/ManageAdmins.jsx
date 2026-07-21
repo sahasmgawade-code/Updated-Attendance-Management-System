@@ -127,7 +127,7 @@ export default function ManageAdmins() {
             setAddError('');
             setForm(emptyForm);
           }}
-          className="bg-forest text-paper rounded px-5 py-2 font-medium hover:bg-forestDark transition-colors"
+          className="glass-btn bg-forestGlass text-white rounded px-5 py-2 font-medium hover:bg-forestGlass/70 transition-colors"
         >
           {showAddForm ? 'Close' : '+ Create Admin'}
         </button>
@@ -182,7 +182,7 @@ export default function ManageAdmins() {
             <button
               type="submit"
               disabled={creating}
-              className="bg-forest text-paper rounded px-5 py-2 font-medium hover:bg-forestDark transition-colors disabled:opacity-60"
+              className="glass-btn bg-forestGlass text-white rounded px-5 py-2 font-medium hover:bg-forestGlass/70 transition-colors disabled:opacity-60"
             >
               {creating ? 'Creating…' : 'Create Admin'}
             </button>
@@ -221,7 +221,7 @@ export default function ManageAdmins() {
                   <button
                     onClick={() => handleSaveEdit(a.id)}
                     disabled={savingEdit}
-                    className="px-3 py-1.5 text-sm font-medium rounded bg-forest text-paper hover:bg-forestDark transition-colors disabled:opacity-60"
+                    className="px-3 py-1.5 text-sm font-medium rounded glass-btn bg-forestGlass text-white hover:bg-forestGlass/70 transition-colors disabled:opacity-60"
                   >
                     {savingEdit ? 'Saving…' : 'Save'}
                   </button>
@@ -255,7 +255,7 @@ export default function ManageAdmins() {
                       <button
                         onClick={() => handleDelete(a.id, a.name)}
                         disabled={busyId === a.id}
-                        className="px-3 py-1.5 text-sm font-medium rounded border border-brick text-brick hover:bg-brick hover:text-paper transition-colors disabled:opacity-60"
+                        className="glass-btn px-3 py-1.5 text-sm font-medium rounded border border-brick text-brick hover:bg-brickGlass hover:text-white transition-colors disabled:opacity-60"
                       >
                         Delete
                       </button>
