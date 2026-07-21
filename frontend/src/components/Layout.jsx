@@ -8,7 +8,7 @@ const navLinkClass = ({ isActive }) =>
   }`;
 
 export default function Layout({ children }) {
-  const { admin, logout } = useAuth();
+  const { admin, logout, isSuperAdmin } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -34,6 +34,14 @@ export default function Layout({ children }) {
             >
               View Students
             </button>
+            {isSuperAdmin && (
+              <button
+                onClick={() => navigate('/admins')}
+                className="px-3 py-1.5 text-sm font-medium rounded border border-forest text-forestDark hover:bg-forest hover:text-paper transition-colors"
+              >
+                Manage Admin
+              </button>
+            )}
             <span className="hidden sm:inline text-xs font-mono text-ink/50">{admin?.name}</span>
             <button
               onClick={logout}

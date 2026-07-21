@@ -11,6 +11,7 @@ import ScanAttendance from './pages/ScanAttendance.jsx';
 import Students from './pages/Students.jsx';
 import EditAttendance from './pages/EditAttendance.jsx';
 import Reports from './pages/Reports.jsx';
+import ManageAdmins from './pages/ManageAdmins.jsx';
 function StubPage({ title }) {
   return (
     <div className="text-center py-24">
@@ -32,6 +33,7 @@ export default function App() {
       <Route path="/generate-qr" element={<ProtectedRoute><Layout><GenerateQr /></Layout></ProtectedRoute>} />
       <Route path="/edit-attendance" element={<ProtectedRoute><Layout><EditAttendance /></Layout></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute><Layout><Reports /></Layout></ProtectedRoute>} />
+      <Route path="/admins" element={<ProtectedRoute><Layout><ManageAdmins /></Layout></ProtectedRoute>} />
     </Routes>
   );
 }

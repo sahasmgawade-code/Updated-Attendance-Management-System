@@ -8,6 +8,48 @@ function todayLocal() {
   return local.toISOString().slice(0, 10);
 }
 
+function StatusToggle({ status, onChange }) {
+  const isPresent = status === 'present';
+  return (
+    <div className="flex items-center gap-2.5 shrink-0">
+      <span
+        onClick={() => onChange('present')}
+        className={`text-sm font-medium cursor-pointer select-none transition-colors ${
+          isPresent ? 'text-forest' : 'text-ink/40'
+        }`}
+      >
+        Present
+      </span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={!isPresent}
+        onClick={() => onChange(isPresent ? 'absent' : 'present')}
+        className="relative inline-flex h-7 w-[52px] items-center rounded-full transition-all focus-visible:outline-forest"
+        style={{
+          background: isPresent
+            ? 'linear-gradient(to right, #5DCAA5, #378ADD)'
+            : 'linear-gradient(to right, #D85A30, #E24B4A)',
+        }}
+      >
+        <span
+          className={`absolute top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white transition-all duration-200 ${
+            isPresent ? 'left-[-3px]' : 'left-[23px]'
+          }`}
+          style={{ boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }}
+        />
+      </button>
+      <span
+        onClick={() => onChange('absent')}
+        className={`text-sm font-medium cursor-pointer select-none transition-colors ${
+          !isPresent ? 'text-brick' : 'text-ink/40'
+        }`}
+      >
+        Absent
+      </span>
+    </div>
+  );
+}
 export default function EditAttendance() {
   const [batches, setBatches] = useState([]);
   const [batchId, setBatchId] = useSelectedBatch();
@@ -157,28 +199,10 @@ export default function EditAttendance() {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-4 shrink-0">
-                  <label className="flex items-center gap-1.5 text-sm font-medium cursor-pointer">
-                    <input
-                      type="radio"
-                      name={`status-${r.student_id}`}
-                      checked={r.status === 'present'}
-                      onChange={() => setStatus(r.student_id, 'present')}
-                      className="accent-forest"
-                    />
-                    Present
-                  </label>
-                  <label className="flex items-center gap-1.5 text-sm font-medium cursor-pointer">
-                    <input
-                      type="radio"
-                      name={`status-${r.student_id}`}
-                      checked={r.status === 'absent'}
-                      onChange={() => setStatus(r.student_id, 'absent')}
-                      className="accent-brick"
-                    />
-                    Absent
-                  </label>
-                </div>
+                <StatusToggle
+                  status={r.status}
+                  onChange={(status) => setStatus(r.student_id, status)}
+                />
               </div>
             ))}
           </div>

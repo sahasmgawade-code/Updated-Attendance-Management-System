@@ -30,6 +30,31 @@ async function createAdmin(req, res) {
   }
 }
 
+// Super Admin renames any admin (including themself)
+async function updateAdmin(req, res) {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Name is required' });
+  }
+
+  try {
+    const result = await pool.query(
+      'UPDATE admins SET name = $1 WHERE id = $2 RETURNING id, name, email, role',
+      [name.trim(), id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Admin not found' });
+    }
+
+    res.json({ admin: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+
 // Super Admin deletes an admin
 async function deleteAdmin(req, res) {
   const { id } = req.params;
@@ -79,4 +104,4 @@ async function listAdminsBasic(req, res) {
   }
 }
 
-module.exports = { createAdmin, deleteAdmin, listAdmins, listAdminsBasic };
+module.exports = { createAdmin, updateAdmin, deleteAdmin, listAdmins, listAdminsBasic };

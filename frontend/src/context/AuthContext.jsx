@@ -23,8 +23,19 @@ export function AuthProvider({ children }) {
     setAdmin(null);
   }, []);
 
+  const updateOwnName = useCallback((newName) => {
+    setAdmin((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, name: newName };
+      localStorage.setItem('attendqr_admin', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ admin, login, logout, isSuperAdmin: admin?.role === 'super_admin' }}>
+    <AuthContext.Provider
+      value={{ admin, login, logout, updateOwnName, isSuperAdmin: admin?.role === 'super_admin' }}
+    >
       {children}
     </AuthContext.Provider>
   );

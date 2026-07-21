@@ -113,7 +113,7 @@ async function deleteStudent(req, res) {
   }
 }
 
-// Blacklist / unblacklist a student (per your spec: super_admin only blacklists)
+// Blacklist / unblacklist a student (super_admin and admins with access to the student's batch)
 async function setBlacklist(req, res) {
   const { studentId } = req.params;
   const { blacklisted } = req.body; // true/false
@@ -123,11 +123,17 @@ async function setBlacklist(req, res) {
   }
 
   try {
+    const studentRes = await pool.query('SELECT batch_id FROM students WHERE id = $1', [studentId]);
+    if (studentRes.rows.length === 0) return res.status(404).json({ error: 'Student not found' });
+
+    if (!(await canAccessBatch(req.admin, studentRes.rows[0].batch_id))) {
+      return res.status(403).json({ error: 'No access to this batch' });
+    }
+
     const result = await pool.query(
       'UPDATE students SET is_blacklisted = $1 WHERE id = $2 RETURNING *',
       [blacklisted, studentId]
     );
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Student not found' });
 
     res.json({ student: result.rows[0] });
   } catch (err) {

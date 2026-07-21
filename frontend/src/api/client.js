@@ -48,6 +48,7 @@ export const api = {
   listAdmins: () => request('/admins'),
   listAdminsBasic: () => request('/admins/basic'),
   createAdmin: (payload) => request('/admins', { method: 'POST', body: payload }),
+  updateAdmin: (id, name) => request(`/admins/${id}`, { method: 'PUT', body: { name } }),
   deleteAdmin: (id) => request(`/admins/${id}`, { method: 'DELETE' }),
 
   listBatches: () => request('/batches'),

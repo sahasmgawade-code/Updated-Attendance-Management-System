@@ -300,7 +300,6 @@ export default function Students() {
                     >
                       Edit
                     </button>
-                    {isSuperAdmin && (
                       <button
                         onClick={() => handleBlacklistToggle(s.id, s.is_blacklisted)}
                         disabled={busyId === s.id}
@@ -308,7 +307,6 @@ export default function Students() {
                       >
                         {s.is_blacklisted ? 'Unblacklist' : 'Blacklist'}
                       </button>
-                    )}
                     <button
                       onClick={() => handleDelete(s.id, `${s.first_name} ${s.last_name}`)}
                       disabled={busyId === s.id}
