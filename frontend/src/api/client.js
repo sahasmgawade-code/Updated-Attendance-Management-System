@@ -47,6 +47,7 @@ export const api = {
     request('/auth/change-password', { method: 'POST', body: { currentPassword, newPassword } }),
   listAdmins: () => request('/admins'),
   listAdminsBasic: () => request('/admins/basic'),
+  getAdminBatchAccess: (adminId) => request(`/admins/${adminId}/batches`),
   createAdmin: (payload) => request('/admins', { method: 'POST', body: payload }),
   updateAdmin: (id, name) => request(`/admins/${id}`, { method: 'PUT', body: { name } }),
   deleteAdmin: (id) => request(`/admins/${id}`, { method: 'DELETE' }),
@@ -57,7 +58,8 @@ export const api = {
   deleteBatch: (id) => request(`/batches/${id}`, { method: 'DELETE' }),
   assignAdminToBatch: (batchId, adminId) =>
     request(`/batches/${batchId}/assign-admin`, { method: 'POST', body: { adminId } }),
-
+  revokeAdminFromBatch: (batchId, adminId) =>
+    request(`/batches/${batchId}/assign-admin/${adminId}`, { method: 'DELETE' }),
   listStudents: (batchId) => request(`/students/batch/${batchId}`),
   createStudent: (batchId, payload) => request(`/students/batch/${batchId}`, { method: 'POST', body: payload }),
   updateStudent: (id, payload) => request(`/students/${id}`, { method: 'PUT', body: payload }),

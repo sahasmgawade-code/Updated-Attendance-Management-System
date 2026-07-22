@@ -10,7 +10,11 @@ export default function ManageAdmins() {
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
+  const [accessAdminId, setAccessAdminId] = useState(null);
+  const [batchAccess, setBatchAccess] = useState([]);
+  const [accessLoading, setAccessLoading] = useState(false);
+  const [accessError, setAccessError] = useState('');
+  const [togglingBatchId, setTogglingBatchId] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [addError, setAddError] = useState('');
@@ -101,6 +105,41 @@ export default function ManageAdmins() {
       setEditError(err.message || 'Could not update name.');
     } finally {
       setSavingEdit(false);
+    }
+  }
+
+  function toggleAccessPanel(adminId) {
+    if (accessAdminId === adminId) {
+      setAccessAdminId(null);
+      setBatchAccess([]);
+      setAccessError('');
+      return;
+    }
+    setAccessAdminId(adminId);
+    setAccessError('');
+    setAccessLoading(true);
+    api.getAdminBatchAccess(adminId)
+      .then((data) => setBatchAccess(data.batches))
+      .catch((err) => setAccessError(err.message))
+      .finally(() => setAccessLoading(false));
+  }
+
+  async function toggleBatchAccess(adminId, batch) {
+    setTogglingBatchId(batch.id);
+    setAccessError('');
+    try {
+      if (batch.hasAccess) {
+        await api.revokeAdminFromBatch(batch.id, adminId);
+      } else {
+        await api.assignAdminToBatch(batch.id, adminId);
+      }
+      setBatchAccess((prev) =>
+        prev.map((b) => (b.id === batch.id ? { ...b, hasAccess: !b.hasAccess } : b))
+      );
+    } catch (err) {
+      setAccessError(err.message || 'Could not update batch access.');
+    } finally {
+      setTogglingBatchId(null);
     }
   }
 
@@ -234,6 +273,7 @@ export default function ManageAdmins() {
                   {editError && <p className="w-full text-sm text-brick font-medium">{editError}</p>}
                 </div>
               ) : (
+                <>
                 <div className="flex items-center justify-between flex-wrap gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -252,16 +292,56 @@ export default function ManageAdmins() {
                       Edit
                     </button>
                     {a.role !== 'super_admin' && (
-                      <button
-                        onClick={() => handleDelete(a.id, a.name)}
-                        disabled={busyId === a.id}
-                        className="glass-btn px-3 py-1.5 text-sm font-medium rounded border border-brick text-brick hover:bg-brickGlass hover:text-white transition-colors disabled:opacity-60"
-                      >
-                        Delete
-                      </button>
+                      <>
+                        <button
+                          onClick={() => toggleAccessPanel(a.id)}
+                          className="px-3 py-1.5 text-sm font-medium rounded border border-rule text-ink/70 hover:bg-ink/5 transition-colors"
+                        >
+                          {accessAdminId === a.id ? 'Hide Batches' : 'Batches'}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(a.id, a.name)}
+                          disabled={busyId === a.id}
+                          className="glass-btn px-3 py-1.5 text-sm font-medium rounded border border-brick text-brick hover:bg-brickGlass hover:text-white transition-colors disabled:opacity-60"
+                        >
+                          Delete
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
+                {accessAdminId === a.id && (
+                  <div className="mt-4 pt-4 border-t border-rule">
+                    {accessLoading ? (
+                      <p className="text-ink/50 font-mono text-sm">Loading batches…</p>
+                    ) : batchAccess.length === 0 ? (
+                      <p className="text-sm text-ink/50">No batches exist yet.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {batchAccess.map((b) => (
+                          <label
+                            key={b.id}
+                            className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded border cursor-pointer transition-colors ${
+                              b.hasAccess
+                                ? 'glass-btn border-forest bg-forestGlass text-white'
+                                : 'border-rule text-ink/70 hover:bg-white/20'
+                            } ${togglingBatchId === b.id ? 'opacity-60 pointer-events-none' : ''}`}
+                          >
+                            <input
+                              type="checkbox"
+                              className="hidden"
+                              checked={b.hasAccess}
+                              onChange={() => toggleBatchAccess(a.id, b)}
+                            />
+                            {b.name}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    {accessError && <p className="text-sm text-brick font-medium mt-2">{accessError}</p>}
+                  </div>
+                )}
+                                </>
               )}
             </div>
           ))}

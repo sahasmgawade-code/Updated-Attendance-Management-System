@@ -104,4 +104,29 @@ async function listAdminsBasic(req, res) {
   }
 }
 
-module.exports = { createAdmin, updateAdmin, deleteAdmin, listAdmins, listAdminsBasic };
+// List every batch with a flag for whether this specific admin has access (super admin only)
+async function getAdminBatchAccess(req, res) {
+  const { id } = req.params; // admin id
+
+  try {
+    const admin = await pool.query('SELECT id FROM admins WHERE id = $1', [id]);
+    if (admin.rows.length === 0) return res.status(404).json({ error: 'Admin not found' });
+
+    const result = await pool.query(
+      `SELECT b.id, b.name,
+              EXISTS (
+                SELECT 1 FROM batch_admins ba
+                WHERE ba.batch_id = b.id AND ba.admin_id = $1
+              ) AS "hasAccess"
+       FROM batches b
+       ORDER BY b.id`,
+      [id]
+    );
+
+    res.json({ batches: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+module.exports = { createAdmin, updateAdmin, deleteAdmin, listAdmins, listAdminsBasic, getAdminBatchAccess };

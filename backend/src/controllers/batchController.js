@@ -110,4 +110,26 @@ async function assignAdminToBatch(req, res) {
   }
 }
 
-module.exports = { createBatch, deleteBatch, listBatches, assignAdminToBatch };
+// Super admin revokes an admin's access to a batch
+async function revokeAdminFromBatch(req, res) {
+  const { id, adminId } = req.params; // batch id, admin id
+
+  try {
+    const batch = await pool.query('SELECT id FROM batches WHERE id = $1', [id]);
+    if (batch.rows.length === 0) return res.status(404).json({ error: 'Batch not found' });
+
+    const result = await pool.query(
+      'DELETE FROM batch_admins WHERE batch_id = $1 AND admin_id = $2 RETURNING *',
+      [id, adminId]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Admin does not have access to this batch' });
+    }
+
+    res.json({ message: 'Admin access revoked' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+module.exports = { createBatch, deleteBatch, listBatches, assignAdminToBatch, revokeAdminFromBatch };
