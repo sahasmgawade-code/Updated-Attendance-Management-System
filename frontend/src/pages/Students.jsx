@@ -136,7 +136,17 @@ export default function Students() {
   async function handleAdd(form) {
     setAddError('');
     try {
-      await api.createStudent(batchId, form);
+      const result = await api.createStudent(batchId, form);
+
+      if (result?.requiresConfirmation) {
+        const batchNames = result.existingBatches.map((b) => b.batchName).join(', ');
+        const proceed = window.confirm(
+          `${result.message}\nExisting batch(es): ${batchNames}\n\nAdd this student to the current batch as well?`
+        );
+        if (!proceed) return;
+        await api.createStudent(batchId, { ...form, confirmed: true });
+      }
+
       setShowAddForm(false);
       await loadStudents(batchId);
     } catch (err) {

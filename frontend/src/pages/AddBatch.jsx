@@ -113,18 +113,26 @@ export default function AddBatch() {
             phone: r.phone,
             email: r.email,
             parentPhone: r.parentPhone,
+            confirmed: true, // bulk import: auto-confirm cross-batch enrollment, flag it in results instead
           })
         )
       );
 
       const failed = [];
+      const multiBatch = [];
       let created = 0;
       outcomes.forEach((outcome, i) => {
-        if (outcome.status === 'fulfilled') created += 1;
-        else failed.push({ row: validRows[i], reason: outcome.reason?.message || 'Failed' });
+        if (outcome.status === 'fulfilled') {
+          created += 1;
+          if (outcome.value?.alreadyInOtherBatches?.length > 0) {
+            multiBatch.push({ row: validRows[i], batches: outcome.value.alreadyInOtherBatches });
+          }
+        } else {
+          failed.push({ row: validRows[i], reason: outcome.reason?.message || 'Failed' });
+        }
       });
 
-      setResults({ batchId, created, failed });
+      setResults({ batchId, created, failed, multiBatch });
     } catch (err) {
       setCreateError(err.message || 'Could not create batch.');
     } finally {
@@ -145,6 +153,21 @@ export default function AddBatch() {
                 {results.failed.map((f, i) => (
                   <li key={i} className="py-1.5">
                     Row {f.row.rowNum} ({f.row.urn || '—'}): <span className="text-brick">{f.reason}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {results.multiBatch.length > 0 && (
+            <div>
+              <p className="text-amber font-medium mb-2">
+                {results.multiBatch.length} student(s) were already enrolled in other batch(es):
+              </p>
+              <ul className="divide-y divide-rule text-sm">
+                {results.multiBatch.map((m, i) => (
+                  <li key={i} className="py-1.5">
+                    Row {m.row.rowNum} ({m.row.urn}): also in{' '}
+                    <span className="text-amber">{m.batches.map((b) => b.batchName).join(', ')}</span>
                   </li>
                 ))}
               </ul>

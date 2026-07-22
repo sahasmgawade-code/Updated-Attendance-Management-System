@@ -26,9 +26,10 @@ CREATE TABLE batch_admins (
 CREATE EXTENSION IF NOT EXISTS citext;
 
 -- Students
+-- Students
 CREATE TABLE students (
   id SERIAL PRIMARY KEY,
-  urn CITEXT UNIQUE NOT NULL,
+  urn CITEXT NOT NULL,
   first_name VARCHAR(100) NOT NULL,
   last_name VARCHAR(100) NOT NULL,
   phone VARCHAR(20),
@@ -36,7 +37,8 @@ CREATE TABLE students (
   parent_phone VARCHAR(20),
   batch_id INTEGER REFERENCES batches(id) ON DELETE CASCADE,
   is_blacklisted BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE (urn, batch_id)
 );
 
 -- QR sessions (one per "Generate QR" activation)

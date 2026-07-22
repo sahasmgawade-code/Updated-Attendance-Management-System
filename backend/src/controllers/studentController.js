@@ -11,9 +11,10 @@ async function canAccessBatch(admin, batchId) {
 }
 
 // Add a student to a batch
+// Add a student to a batch
 async function addStudent(req, res) {
   const { batchId } = req.params;
-  const { urn, firstName, lastName, phone, email, parentPhone } = req.body;
+  const { urn, firstName, lastName, phone, email, parentPhone, confirmed } = req.body;
 
   if (!urn || !firstName || !lastName) {
     return res.status(400).json({ error: 'urn, firstName, and lastName are required' });
@@ -23,11 +24,38 @@ async function addStudent(req, res) {
     if (!(await canAccessBatch(req.admin, batchId))) {
       return res.status(403).json({ error: 'No access to this batch' });
     }
-const normalizedUrn = urn.replace(/\s+/g, '').toUpperCase();
 
-    const existing = await pool.query('SELECT id FROM students WHERE urn = $1', [normalizedUrn]);
-    if (existing.rows.length > 0) {
-      return res.status(409).json({ error: 'URN already exists' });
+    const normalizedUrn = urn.replace(/\s+/g, '').toUpperCase();
+
+    // Block only a true duplicate: same URN already in THIS batch
+    const existingInBatch = await pool.query(
+      'SELECT id FROM students WHERE urn = $1 AND batch_id = $2',
+      [normalizedUrn, batchId]
+    );
+    if (existingInBatch.rows.length > 0) {
+      return res.status(409).json({ error: 'This URN already exists in this batch' });
+    }
+
+    // Check if this URN already exists in any OTHER batch
+    const otherBatchesRes = await pool.query(
+      `SELECT s.batch_id, b.name AS batch_name
+       FROM students s
+       JOIN batches b ON b.id = s.batch_id
+       WHERE s.urn = $1`,
+      [normalizedUrn]
+    );
+    const existingBatches = otherBatchesRes.rows.map((r) => ({
+      batchId: r.batch_id,
+      batchName: r.batch_name,
+    }));
+
+    // If found elsewhere and admin hasn't confirmed yet, alert instead of inserting
+    if (existingBatches.length > 0 && !confirmed) {
+      return res.status(200).json({
+        requiresConfirmation: true,
+        message: `This student (URN ${normalizedUrn}) is already enrolled in ${existingBatches.length} other batch(es).`,
+        existingBatches,
+      });
     }
 
     const result = await pool.query(
@@ -37,13 +65,15 @@ const normalizedUrn = urn.replace(/\s+/g, '').toUpperCase();
       [batchId, normalizedUrn, firstName, lastName, phone || null, email || null, parentPhone || null]
     );
 
-    res.status(201).json({ student: result.rows[0] });
+    res.status(201).json({
+      student: result.rows[0],
+      ...(existingBatches.length > 0 ? { alreadyInOtherBatches: existingBatches } : {}),
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
   }
 }
-
 // List students in a batch
 async function listStudents(req, res) {
   const { batchId } = req.params;
