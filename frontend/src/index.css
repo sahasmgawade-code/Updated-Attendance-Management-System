@@ -6,7 +6,8 @@ body {
   @apply text-ink font-sans antialiased;
   min-height: 100vh;
   background: linear-gradient(135deg, #8FD3E8 0%, #4A9CB8 40%, #1F5C73 100%);
-  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
   position: relative;
   overflow-x: hidden;
 }

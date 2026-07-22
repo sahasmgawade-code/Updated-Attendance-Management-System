@@ -17,7 +17,7 @@ export default {
         brickGlass: 'rgba(126, 50, 34, 0.88)',
         amberGlass: 'rgba(140, 100, 35, 0.88)',
         aero: '#3A8DA8',
-        aeroDark: '#1F5C73',
+        aeroDark: '#02151c',
       },
       fontFamily: {
         display: ['"Fraunces"', 'serif'],
@@ -25,7 +25,7 @@ export default {
         mono: ['"IBM Plex Mono"', 'monospace'],
       },
       backgroundImage: {
-        'ruled': 'repeating-linear-gradient(transparent, transparent 27px, #C9CABB 28px)',
+        'ruled': 'repeating-linear-gradient(transparent, transparent 27px, #bbc9ca 28px)',
       },
     },
   },

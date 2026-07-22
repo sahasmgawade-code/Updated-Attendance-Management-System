@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import Logo from '../components/Logo.jsx';
+import Footer from '../components/Footer.jsx';
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -25,8 +26,9 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-paper px-6">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen bg-transparent">
+      <div className="flex items-center justify-center px-6 py-16">
+        <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-2">
             <Logo iconSize={56} textSize="text-3xl" />
@@ -76,6 +78,8 @@ export default function Login() {
           </button>
         </form>
       </div>
+      </div>
+      <Footer />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import Logo from '../components/Logo.jsx';
+import Footer from '../components/Footer.jsx';
 const features = [
   {
     title: 'Generate QR codes per batch',
@@ -43,7 +44,7 @@ export default function Landing() {
   if (admin) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-transparent">
       {/* Header */}
       <header className="border-b border-rule bg-card">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -140,14 +141,7 @@ export default function Landing() {
         </Link>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-rule bg-card">
-        <div className="max-w-6xl mx-auto px-6 py-8 text-center">
-          <p className="font-mono text-xs text-ink/50">
-            Present Hoon Sir! (PHS-AMS) — QR code attendance management for colleges &amp; universities
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

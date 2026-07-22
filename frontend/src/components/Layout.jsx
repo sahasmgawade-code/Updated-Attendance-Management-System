@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import Logo from './Logo.jsx';
+import Footer from './Footer.jsx';
 const navLinkClass = ({ isActive }) =>
   `px-3 py-1.5 text-sm font-medium rounded transition-colors whitespace-nowrap ${
     isActive ? 'glass-btn bg-forestGlass text-white' : 'text-ink/80 hover:bg-white/20'
@@ -12,7 +13,7 @@ export default function Layout({ children }) {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-transparent flex flex-col">
       <header className="border-b border-rule bg-card">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
@@ -51,7 +52,8 @@ export default function Layout({ children }) {
           </div>
         </div>
       </header>
-      <main className="max-w-6xl mx-auto px-6 py-8">{children}</main>
+      <main className="max-w-6xl mx-auto px-6 py-8 flex-1 w-full">{children}</main>
+      <Footer />
     </div>
   );
 }
