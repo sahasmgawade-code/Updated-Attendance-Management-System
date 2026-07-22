@@ -254,8 +254,8 @@ export default function AddBatch() {
               {validRows.length} valid row(s)
               {invalidRows.length > 0 ? `, ${invalidRows.length} row(s) missing required fields` : ''}
             </p>
-            <div className="max-h-72 overflow-y-auto border border-rule rounded">
-              <table className="w-full text-sm">
+            <div className="max-h-72 overflow-y-auto overflow-x-auto border border-rule rounded">
+              <table className="w-full text-sm min-w-[640px]">
                 <thead className="bg-paper sticky top-0">
                   <tr className="text-left text-xs font-mono uppercase tracking-wide text-ink/50">
                     <th className="p-2">Row</th>
