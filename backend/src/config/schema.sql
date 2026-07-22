@@ -23,10 +23,12 @@ CREATE TABLE batch_admins (
   PRIMARY KEY (batch_id, admin_id)
 );
 
+CREATE EXTENSION IF NOT EXISTS citext;
+
 -- Students
 CREATE TABLE students (
   id SERIAL PRIMARY KEY,
-  urn VARCHAR(50) UNIQUE NOT NULL,
+  urn CITEXT UNIQUE NOT NULL,
   first_name VARCHAR(100) NOT NULL,
   last_name VARCHAR(100) NOT NULL,
   phone VARCHAR(20),

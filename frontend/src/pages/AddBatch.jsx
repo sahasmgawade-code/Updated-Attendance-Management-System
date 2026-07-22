@@ -23,7 +23,7 @@ function pick(row, ...keys) {
 
 function parseRows(rawRows) {
   return rawRows.map((row, idx) => {
-    const urn = pick(row, 'urn');
+    const urn = pick(row, 'urn').replace(/\s+/g, '').toUpperCase();
     const studentName = pick(row, 'student name', 'name');
     const { firstName, lastName } = splitName(studentName);
     const phone = pick(row, 'student phone', 'phone');

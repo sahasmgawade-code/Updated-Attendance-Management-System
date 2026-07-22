@@ -70,7 +70,7 @@ export default function ScanAttendance() {
     setSubmitting(true);
     try {
       const data = await api.submitQrAttendance(token, {
-        urn: urn.trim(),
+        urn: urn.replace(/\s+/g, ''),
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         deviceToken: getDeviceToken(),

@@ -23,8 +23,9 @@ async function addStudent(req, res) {
     if (!(await canAccessBatch(req.admin, batchId))) {
       return res.status(403).json({ error: 'No access to this batch' });
     }
+const normalizedUrn = urn.replace(/\s+/g, '').toUpperCase();
 
-    const existing = await pool.query('SELECT id FROM students WHERE urn = $1', [urn]);
+    const existing = await pool.query('SELECT id FROM students WHERE urn = $1', [normalizedUrn]);
     if (existing.rows.length > 0) {
       return res.status(409).json({ error: 'URN already exists' });
     }
@@ -33,7 +34,7 @@ async function addStudent(req, res) {
       `INSERT INTO students (batch_id, urn, first_name, last_name, phone, email, parent_phone, is_blacklisted)
        VALUES ($1, $2, $3, $4, $5, $6, $7, false)
        RETURNING *`,
-      [batchId, urn, firstName, lastName, phone || null, email || null, parentPhone || null]
+      [batchId, normalizedUrn, firstName, lastName, phone || null, email || null, parentPhone || null]
     );
 
     res.status(201).json({ student: result.rows[0] });

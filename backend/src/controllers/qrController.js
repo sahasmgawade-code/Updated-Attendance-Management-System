@@ -58,7 +58,8 @@ async function getSessionStatus(req, res) {
 // Public: student submits urn from the scanned page
 async function submitAttendance(req, res) {
   const { token } = req.params;
-  const { urn, firstName, lastName, deviceToken } = req.body;
+  const { firstName, lastName, deviceToken } = req.body;
+  const urn = (req.body.urn || '').replace(/\s+/g, '');
 
   if (!urn || !firstName || !lastName || !deviceToken) {
     return res.status(400).json({ error: 'urn, firstName, lastName and deviceToken are required' });
@@ -167,13 +168,13 @@ async function downloadSessionReport(req, res) {
     }
 
     const submissionsRes = await pool.query(
-  `SELECT s.urn, qs.submitted_first_name AS first_name, qs.submitted_last_name AS last_name, qs.submitted_at
+      `SELECT s.urn, qs.submitted_first_name AS first_name, qs.submitted_last_name AS last_name, qs.submitted_at
    FROM qr_submissions qs
    JOIN students s ON s.id = qs.student_id
    WHERE qs.qr_session_id = $1
    ORDER BY qs.submitted_at`,
-  [sessionId]
-);
+      [sessionId]
+    );
 
     // build CSV, escaping any field that contains a comma, quote, or newline
     const escapeCsv = (val) => {
